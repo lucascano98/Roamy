@@ -1,0 +1,32 @@
+﻿namespace Roamy.Models
+{
+    public class Activity
+    {
+        public Guid ActivityId { get; private set; } = Guid.NewGuid();
+        public Guid? DayId { get; set; }
+        public string Name { get; set; }
+        public ActivityLocation? Location { get; set; }
+        public DateTime? Date { get; set; }
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
+        public string? Notes { get; set; }
+
+        public TimeSpan? Duration => EndTime - StartTime;
+
+        public Activity(string name, Guid? dayId = null, DateTime? date = null, TimeSpan ? startTime = null, TimeSpan? endTime = null, string? notes = null)
+        {
+            DayId = dayId;
+            Name = name;
+            Date = date;
+            StartTime = startTime;
+            EndTime = endTime;
+            Notes = notes;
+        }
+
+        //Activity overlap detection
+        public bool CheckOverlap(Activity other)
+        {
+            return this.StartTime < other.EndTime && other.StartTime < this.EndTime;
+        }
+    }
+}
