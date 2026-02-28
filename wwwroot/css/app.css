@@ -1,5 +1,65 @@
+:root {
+    /*--some-name: some-value;*/
+    /*Primary Palette*/
+    --sage: #6B8F71;
+    --sage-mid: #A8C4AB;
+    --sage-light: #EEF3EE;
+    --sage-dark: #4A6B50;
+    /*Neutral Foundation*/
+    --paper: #FAFAF8;
+    --paper-warm: #F5F4F0;
+    --paper-card: #FFFFFF;
+    --border: #E8E6E1;
+    --border-soft: #F0EEE9;
+    --ink: #1A1A1A;
+    --ink-soft: #3D3D3D;
+    --ink-muted: #6B6B6B;
+    --ink-ghost: #A0A0A0;
+    /*Category Colors*/
+    --amber: #D4A017;
+    --amber-light: #FEF3E2;
+    --amber-border: #E8D99A;
+    --sky: #4A9ADF;
+    --sky-light: #EBF3FC;
+    --sky-border: #B3D4F5;
+    --lavender: #6B3FA0;
+    --lavender-light: #F3EEFF;
+    --lavender-border: #C9A8F0;
+    --red: #C0392B;
+    --red-light: #FEE2E2;
+    --red-border: #F5A0A0;
+    /*Typography*/
+    --font-title: "DM Serif Display", Georgia, serif;
+    --font-body: "DM Sans", system-ui, sans-serif;
+    --font-mono: "DM Mono", Consolas, monospace;
+    /*Spacing*/
+    --space-4: 0.25rem;
+    --space-8: 0.5rem;
+    --space-12: 0.75rem;
+    --space-16: 1rem;
+    --space-24: 1.5rem;
+    --space-32: 2rem;
+    --space-48: 3rem;
+    --space-64: 4rem;
+    /*Shadows*/
+    --shadow-xs: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-s: 0 2px 8px rgba(0,0,0,0.07);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.09);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.11);
+    /*Border Radius*/
+    --radius-sm: 6px; /*Inputs, buttons*/
+    --radius-md: 12px; /*Cards*/
+    --radius-lg: 18px; /*Modals*/
+    --radius-xl: 24px; /*Hero card, panels*/
+    --radius-pill: 9999px; /*Chips, tags*/
+    /*Transitions*/
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--font-body);
+    background: var(--paper);
 }
 
 h1:focus {
