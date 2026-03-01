@@ -11,9 +11,9 @@ namespace Roamy.Models
         public List<TripLocation> Location { get; set; } = new List<TripLocation>(); //creates an empty list once class is created
         public List<Day> Days { get; set; } = new List<Day>();
 
-        public Trip(string name, DateTime startDate, DateTime endDate)
+        public Trip(TripLocation location, DateTime startDate, DateTime endDate)
         {
-            Name = name;
+            Location.Add(location);
             StartDate = startDate;
             EndDate = endDate;
             CreateDays();

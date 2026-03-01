@@ -1,7 +1,94 @@
 ﻿@page "/"
+@layout LandingLayout //uses the custom layout created for the homepage
+@inject TripManager TripManager //injects TripManager service for handling trips.
+@inject NavigationManager Navigation //used for navigation between pages.
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="hero">
+    <div class="overlay"></div>
+    <div class="hero-card">
+        <h1 class="heading">Where to next?</h1>
+        <h2 class="subheading">Plan your adventure</h2>
 
-Welcome to your new app.
+        @*
+            EditForm is used for forms with validation
+            - Model: The object that holds the form data
+            - OnValidSubmit: The method called when the form is submitted and all validations pass
+            - @bind-Value: binds the value of the input directly into a property
+        *@
+
+        <EditForm Model="@formModel" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label>Location</label>
+                <InputText @bind-Value="formModel.TripLocationInput" placeholder="City, Country" />
+                @if (error != null)
+                {
+                    <p>@error</p>                
+                }
+            </div>
+
+            <div class="date-row">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <InputDate @bind-Value="formModel.StartDate" />
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <InputDate @bind-Value="formModel.EndDate" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit">Plan my trip</button>
+            </div>
+
+        </EditForm>
+
+    </div>
+</div>
+
+@code {
+    string? error;
+    private TripFormModel formModel = new TripFormModel();
+
+    private void HandleSubmit()
+    {
+        if (formModel.StartDate > formModel.EndDate)
+        {
+            DateTime? temp = formModel.StartDate;
+            formModel.StartDate = formModel.EndDate;
+            formModel.EndDate = temp;
+        }
+
+        string[] parts = formModel.TripLocationInput.Split(',');
+        if (parts.Length != 2)
+        {
+            error = "Please enter city, country";
+            return;
+        }
+
+        string city = parts[0].Trim();
+        string country = parts[1].Trim();
+
+        TripLocation tripLocation = new TripLocation(city, country);
+
+        TripManager.StartTrip(tripLocation, formModel.StartDate.Value, formModel.EndDate.Value);
+        Navigation.NavigateTo("/planner");
+    }
+
+    private class TripFormModel //a model is required to use EditForm in Blazor
+    {
+        [Required]
+        public string TripLocationInput { get; set; } = "";
+
+        [Required] //used for validation in EditForm
+        public DateTime? StartDate { get; set; }
+
+        [Required]
+        public DateTime? EndDate { get; set; }
+    }
+}
+

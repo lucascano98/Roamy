@@ -3,14 +3,12 @@
     public class TripLocation
     {
         public string Country { get; set; }
-        public string? State { get; set; }
         public string City { get; set; }
 
         //Constructor to create new TripLocation
-        public TripLocation(string country, string? state, string city)
+        public TripLocation(string country, string city)
         {
             Country = country;
-            State = state;
             City = city;
         }
     }
