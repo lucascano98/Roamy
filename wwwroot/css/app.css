@@ -173,3 +173,13 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+::selection {
+    background-color: var(--sage-dark);
+    color: var(--paper);
+}
+
+input::selection {
+    background-color: var(--sage-dark);
+    color: var(--paper);
+}

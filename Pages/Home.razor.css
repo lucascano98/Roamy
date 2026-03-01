@@ -23,18 +23,67 @@
     z-index: 2;
     width: 440px;
     border-radius: var(--radius-md);
-    background-color: var(--paper-card);
-    box-shadow: var(--shadow-lg);
     padding: var(--space-24);
 }
 
 .heading {
+    text-align: center;
     font-family: var(--font-title);
-    font-size: 24px;
-    margin-bottom: var(--space-4);
+    color: var(--paper);
+    font-size: 36px;
+    margin-bottom: 1px;
 }
 
 .subheading {
+    text-align: center;
     font-size: 13px;
-    color: var(--ink-ghost);
+    color: #d1d5db;
+    margin-bottom: 8px;
+}
+
+.form-group {
+    margin-bottom: var(--space-8);
+    text-align: center;
+}
+
+.date-row {
+    display: flex;
+    margin: auto;
+    justify-content: center;
+    gap: 16px;
+
+}
+
+.form-group ::deep input {
+    display: block;
+    width: 100%;
+    padding: 4px 4px 4px 15px;
+    border: 1px solid var(--ink-muted);
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.date-label {
+    font-size: 12px;
+    color: var(--paper);
+    text-align: center;
+    margin-top: 1px;
+    
+}
+
+.form-group button {
+    width: 75%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+    background-color: var(--sage-dark);
+    color: var(--paper);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--sage-dark);
+    padding: 8px;
+}
+
+.form-group ::deep input:focus {
+    outline: 2px solid var(--sage-dark);
 }
