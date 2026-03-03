@@ -5,7 +5,7 @@ namespace Roamy.Models
     public class Trip
     {
         public Guid TripId { get; private set; } = Guid.NewGuid(); //Guid = Globally Unique Identifier
-        public string Name { get; set; }
+        public string Name { get; set; } = "MyTrip";
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public List<TripLocation> Location { get; set; } = new List<TripLocation>(); //creates an empty list once class is created

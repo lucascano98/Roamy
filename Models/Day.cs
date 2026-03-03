@@ -7,7 +7,7 @@ namespace Roamy.Models
     {
         public Guid DayId { get; private set; } = Guid.NewGuid();
         public Guid TripId { get; }
-        DateTime Date { get; }
+        public DateTime Date { get; }
         public int DayNumber { get; }
         public List<Activity> Activities { get; set; } = new List<Activity>();
         public string? Weather { get; set; }

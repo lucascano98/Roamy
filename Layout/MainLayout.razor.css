@@ -1,17 +1,2 @@
-.page {
-    display: grid;
-    grid-template-columns: 52px 1fr 500px;
-    height: 100vh;
-}
 
-.left-column {
-    background-color: #1e1e1e;
-}
 
-.center-column {
-    background-color: #ffffff;
-}
-
-.right-column {
-    background-color: #f4f4f4;
-}

@@ -6,10 +6,10 @@
         public string City { get; set; }
 
         //Constructor to create new TripLocation
-        public TripLocation(string country, string city)
+        public TripLocation(string city, string country)
         {
-            Country = country;
             City = city;
+            Country = country;
         }
     }
 }

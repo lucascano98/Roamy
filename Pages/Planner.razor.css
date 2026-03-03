@@ -1,0 +1,56 @@
+﻿.page {
+    display: grid;
+    grid-template-columns: 52px 1fr 500px;
+    height: 100vh;
+}
+
+.left-column {
+    background-color: var(--sage-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.center-column {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--paper);
+}
+
+.right-column {
+    background-color: var(--paper-warm);
+}
+
+.left-column button svg {
+    width: 24px;
+    height: 24px;
+}
+
+.left-column button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--paper);
+    margin-bottom: var(--space-8);
+}
+
+.left-column button:hover {
+    color: var(--sage);
+}
+
+.center-column .header {
+    background-color: var(--paper-warm);
+}
+
+.center-column .itinerary{
+    flex: 1;
+    overflow-y: auto;
+}
+
+.center-column .time-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    grid-template-rows: repeat(96, 15px);
+}
