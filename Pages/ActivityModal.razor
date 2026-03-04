@@ -1,0 +1,135 @@
+﻿@inject TripManager TripManager
+
+<div class="ovarlay">
+    <div class="modal-card">
+        <h2>@(Activity == null ? "Add Activity" : "Edit Activity")</h2>
+
+        <label class="activity-modal">Name</label>
+        <input type="text" @bind="name"/>
+
+        <label class="activity-modal">Category</label>
+        <select @bind="category">
+            @foreach (var category in Enum.GetValues<ActivityCategory>())
+            {
+                <option value="@category">@category</option>
+            }
+        </select>
+
+        <label class="activity-modal">Address</label>
+        <input type="text" placeholder="Optional" @bind="locationAddress"/>
+
+        <label class ="activity-modal">Date</label>
+        <input type="date" @bind="date"/>
+
+        <label class="activity-modal">Start Time</label>
+        <input type="time" value="@startTimeString" @onchange="SetStartTime" /> 
+
+        <label class="activity-modal">End Time</label>
+        <input type="time" value="@endTimeString" @onchange="SetEndTime" />
+
+        <label class="activity-modal">Notes</label>
+        <input type="text" @bind="notes"/>
+
+        <button class="cancel" @onclick="HandleCancel">Cancel</button>
+        <button class="save" @onclick="SaveHandler">Save</button>
+    </div>
+</div>
+
+
+@code {
+    //[Parameter] allows a parent component pass a value into the property
+    [Parameter] public Activity? Activity { get; set; }
+    [Parameter] public DateTime SelectedDate { get; set; }
+    [Parameter] public EventCallback<Activity> OnSave { get; set; } //Returns the info back to the parent
+    [Parameter] public EventCallback OnCancel { get; set; } //Signals to the parent ot close the modal with no data
+
+    //Local (temporary) copies of Activity info
+    private string name { get; set; } = "";
+    private ActivityCategory category = ActivityCategory.Other;
+    private ActivityLocation? location { get; set; }
+    private DateTime? date { get; set; }
+    private string? notes { get; set; }
+
+    //Needed since C# doesn't have a native InputTime and HTML input type="time" works with strings
+    private string startTimeString = "";
+    private string endTimeString = "";
+
+    //Used to help bind activity location text input to ActivityLocation
+    private string locationName = "";
+    private string locationAddress = "";
+
+    //Runs whenever new paramters are received
+    //Add parameter info if Activity is null
+    //Loads existing Activity data into paramter fields if editing an activity
+    protected override void OnParametersSet()
+    {
+        if (Activity != null)
+        {
+            name = Activity.Name;
+            category = Activity.Category ?? ActivityCategory.Other;
+            location = Activity.Location;
+            date = Activity.Date;
+            notes = Activity.Notes;
+            locationAddress = Activity.Location?.Address ?? ""; //if null ?? use this side
+            startTimeString = Activity.StartTime?.ToString(@"hh\:mm") ?? "";
+            endTimeString = Activity.EndTime?.ToString(@"hh\:mm") ?? "";
+        }
+        else
+        {
+            name = "";
+            category = ActivityCategory.Other;
+            location = null;
+            date = SelectedDate; //pre-populate Date with selectedDate
+            startTimeString = "";
+            endTimeString = "";
+            notes = null;
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private async Task SaveHandler()
+    {
+        TimeSpan? parsedStartTime = null;
+        TimeSpan? parsedEndTime = null;
+
+        if (!string.IsNullOrEmpty(startTimeString))
+            parsedStartTime = TimeSpan.Parse(startTimeString);
+
+        if (!string.IsNullOrEmpty(endTimeString))
+            parsedEndTime = TimeSpan.Parse(endTimeString);
+
+        var activityLocation = new ActivityLocation(TripManager.CurrentTrip.Location[0], locationAddress);
+
+        if (Activity == null)
+        {
+            Activity = new Activity(name, category, null, date, parsedStartTime, parsedEndTime, notes);
+            Activity.Location = activityLocation;
+        }
+        else
+        {
+            Activity.Name = name;
+            Activity.Location = activityLocation;
+            Activity.Date = date;
+            Activity.StartTime = parsedStartTime;
+            Activity.EndTime = parsedEndTime;
+            Activity.Notes = notes;
+        }
+
+        //call the Save method , pass it the Activity just created, and wait for it to finish.
+        await OnSave.InvokeAsync(Activity);
+    }
+
+    private void SetStartTime(ChangeEventArgs e)
+    {
+        startTimeString = e.Value?.ToString() ?? "";
+    }
+
+    private void SetEndTime(ChangeEventArgs e)
+    {
+        endTimeString = e.Value?.ToString() ?? "";
+    }
+}

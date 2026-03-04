@@ -31,15 +31,17 @@ namespace Roamy.Models
             return Days[dayIndex];
         }
 
-        public void AddActivityByDate(DateTime activityDate, string name, TimeSpan? startTime, TimeSpan? endTime, string? notes = null)
+        public void AddActivityByDate(Activity activity)
         {
-            Day? targetDay = GetDayByDate(activityDate);
+            if (activity.Date == null) return;
+
+            Day? targetDay = GetDayByDate(activity.Date.Value);
             if (targetDay == null)
                 //exception?
                 return;
 
-            Activity newActivity = new Activity(name, targetDay.DayId, activityDate, startTime, endTime, notes);
-            targetDay.AddActivity(newActivity);
+            activity.DayId = targetDay.DayId;
+            targetDay.AddActivity(activity);
         }
 
         public void CreateDays()

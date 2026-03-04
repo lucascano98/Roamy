@@ -16,16 +16,16 @@
     --ink-muted: #6B6B6B;
     --ink-ghost: #A0A0A0;
     /*Category Colors*/
-    --amber: #D4A017;
+    --amber: #D4A017; /*Food and Drink*/
     --amber-light: #FEF3E2;
     --amber-border: #E8D99A;
-    --sky: #4A9ADF;
+    --sky: #4A9ADF; /*Transport*/
     --sky-light: #EBF3FC;
     --sky-border: #B3D4F5;
-    --lavender: #6B3FA0;
+    --lavender: #6B3FA0; /*Lodging*/
     --lavender-light: #F3EEFF;
     --lavender-border: #C9A8F0;
-    --red: #C0392B;
+    --red: #C0392B; /*Events*/
     --red-light: #FEE2E2;
     --red-border: #F5A0A0;
     /*Typography*/

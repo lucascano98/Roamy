@@ -5,36 +5,45 @@
 <PageTitle>Trip Planner</PageTitle>
 <div class="page">
     <div class="left-column">
+
         <button @onclick="() => SetPanel(ActivePanel.Map)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF3B30">
                 <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
             </svg>
         </button>
+
         <button @onclick="() => SetPanel(ActivePanel.Shortlist)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FBC02D">
                 <path fill-rule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clip-rule="evenodd" />
             </svg>
         </button>
+
     </div>
 
     <div class="center-column">
         <div class="header">
+
             <h1>@TripManager.CurrentTrip.Name</h1>
             <h2>@TripManager.CurrentTrip.Location[0].City, @TripManager.CurrentTrip.Location[0].Country</h2>
             <h2>@TripManager.CurrentTrip.StartDate.Date.ToString("ddd, MM/dd/yyyy") - @TripManager.CurrentTrip.EndDate.Date.ToString("ddd, MM/dd/yyyy")</h2>
             <p> @TripManager.CurrentTrip.Days.Count(d => d.Activities.Any()) of @TripManager.CurrentTrip.Days.Count days planned</p>
+        
         </div>
         <div class="itinerary">
             <div class="navigation">
-                <button @onclick="PreviousDay" disabled="@(selectedDate == TripManager.CurrentTrip.StartDate)">&#8592;</button>
+                
+                <button @onclick="PreviousDay" disabled="@(selectedDate == TripManager.CurrentTrip.StartDate)">&#8592;</button> <!--disable will gray out the arrow if current date == trip start date-->
+
                 <p>Day @dayNumber</p>
                 <p>@selectedDate.ToString("ddd, MM/dd")</p>
+
                 <button @onclick="NextDay" disabled="@(selectedDate == TripManager.CurrentTrip.EndDate)">&#8594;</button>
+            
             </div>
             <div class="time-grid">
                 @{
                     var currentDay = TripManager.CurrentTrip.GetDayByDate(selectedDate);
-                    var scheduledActivities = currentDay?.Activities.Where(a => a.StartTime != null).ToList();
+                    var scheduledActivities = currentDay?.Activities.Where(a => a.StartTime != null).ToList() ?? new List<Activity>();
                 }
                 @for (int i = 0; i <= 95; i++)
                 {
@@ -44,17 +53,36 @@
                             <p>@DateTime.Today.Add(TimeSpan.FromMinutes(i * 15)).ToString("h:mm tt")</p>
                         }
                     </div>
-                    <div class="events">
-                        @foreach (var activity in scheduledActivities.Where(a => GetGridRow(a.StartTime.Value) == i + 1))
-                        {
-                            <div class="activity-card">
-                                @activity.Name
-                            </div>
-                        }
+                    <div class="events @(i % 4 == 0 ? "hour-mark" : i % 2 == 0 ? "half-hour-mark" : "") @(i == 95 ? "last-row" : "")">
+                    </div>
+                }
+                @* @foreach (var activity in scheduledActivities.Where(a => GetGridRow(a.StartTime.Value) == i + 1))
+                {
+                    <div class="activity-card @GetCategoryClass(activity.Category)" @onclick="() => OpenEditModal(activity)">
+                        @activity.Name
+                    </div>
+                } *@
+
+                @foreach(var activity in scheduledActivities)
+                {
+                    <div class="activity-card @GetCategoryClass(activity.Category)"
+                         style="left:60px; right:0; top:@GetTopPx(activity.StartTime.Value); height:@GetHeightPx(activity.Duration.Value);"
+                         @onclick="() => OpenEditModal(activity)">
+                        @activity.Name
                     </div>
                 }
             </div>
+            @if (showModal)
+            {
+                <ActivityModal Activity="activityToEdit" SelectedDate="selectedDate" OnSave="HandleSave" OnCancel="HandleCancel" />
+            }
         </div>
+        <button  @onclick="OpenAddModal"  class="fab-modal" style="width:50px; height:50px;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--sage)">
+                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />
+            </svg>
+        </button>
+
     </div>
 
     <div class="right-column">
@@ -102,6 +130,21 @@
         return (int)Math.Ceiling(duration.TotalMinutes / 15);
     }
 
+    private string GetTopPx(TimeSpan startTime)
+    {
+        // use percent of the day so placement scales with container height
+        var percent = startTime.TotalMinutes / 1440.0 * 100.0; // 1440 minutes in a day
+        return $"{percent.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}%";
+    }
+
+    private string GetHeightPx(TimeSpan duration)
+    {
+        var percent = duration.TotalMinutes / 1440.0 * 100.0;
+        if (percent <= 0.1) // ensure something visible for very short durations
+            percent = 0.1;
+        return $"{percent.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}%";
+    }
+
     private void PreviousDay()
     {
         if (selectedDate != TripManager.CurrentTrip.StartDate)
@@ -125,4 +168,48 @@
         dayNumber = TripManager.CurrentTrip.Days[TripManager.CurrentTrip.Days.FindIndex(d => d.Date.Date == selectedDate)].DayNumber;
     }
 
+    private bool showModal = false;
+    private Activity? activityToEdit = null;
+
+    private void OpenAddModal()
+    {
+        activityToEdit = null;
+        showModal = true;
+    }
+
+    private void OpenEditModal(Activity activity)
+    {
+        activityToEdit = activity;
+        showModal = true;
+    }
+
+    private void HandleCancel()
+    {
+        showModal = false;
+    }
+
+    private async Task HandleSave(Activity activity) //EventCallBack handlers should return Task
+    {
+        if (activityToEdit == null)
+            TripManager.AddActivity(activity);
+        else
+        {
+            TripManager.EditActivity(activity);
+        }
+
+        showModal = false;
+
+        await Task.CompletedTask;
+    }
+
+    //decides class name for activity-card based on category
+    private string GetCategoryClass(ActivityCategory? category) => category switch
+    {
+        ActivityCategory.Sightseeing => "cat-sightseeing",
+        ActivityCategory.FoodAndDrink => "cat-food",
+        ActivityCategory.Transport => "cat-transport",
+        ActivityCategory.Lodging => "cat-lodging",
+        ActivityCategory.Event => "cat-event",
+        _ => "cat-other"
+    };
 }

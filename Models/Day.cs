@@ -44,7 +44,7 @@ namespace Roamy.Models
                 this.Activities.Remove(toRemove);
         }
 
-        public void RescheduleActivity(Activity activity)
+        public void EditActivity(Activity activity)
         {
             Activities.Remove(activity);
             AddActivity(activity);

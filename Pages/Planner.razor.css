@@ -53,4 +53,89 @@
     display: grid;
     grid-template-columns: 60px 1fr;
     grid-template-rows: repeat(96, 15px);
+    grid-auto-flow: dense;
+    position: relative; /* allow absolutely positioned activity cards to overlay */
+}
+
+.center-column button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.events {
+    z-index: 0;
+}
+
+.label {
+    font-size: 11px;
+    text-align: right;
+    padding-right: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: top;
+    transform: translateY(-50%);
+}
+
+.half-hour-mark {
+    border-top: 1px solid var(--border-soft);
+}
+
+.hour-mark {
+    border-top: 1px solid var(--border);
+}
+
+.last-row {
+    border-bottom: 1px solid var(--border);
+}
+
+.activity-card {
+    border-radius: var(--radius-sm);
+    padding: var(--space-4) var(--space-8) var(--space-4) var(--space-12);
+    font-size: 13px;
+    overflow: hidden;
+    cursor: pointer;
+    border-left: 3px solid;
+    min-width: 0;
+    position: absolute;
+    left: 60px; /* align to second column (label column is 60px) */
+    right: 0;
+    min-height: 15px;
+    z-index: 2;
+}
+
+.cat-sightseeing {
+    background-color: var(--sage-light);
+    border-left-color: var(--sage);
+    color: var(--sage-dark);
+}
+
+.cat-food {
+    background-color: var(--amber-light);
+    border-left-color: var(--amber);
+    color: var(--amber);
+}
+
+.cat-transport {
+    background-color: var(--sky-light);
+    border-left-color: var(--sky);
+    color: var(--sky);
+}
+
+.cat-lodging {
+    background-color: var(--lavender-light);
+    border-left-color: var(--lavender);
+    color: var(--lavender);
+}
+
+.cat-event {
+    background-color: var(--red-light);
+    border-left-color: var(--red);
+    color: var(--red);
+}
+
+.cat-other {
+    background-color: var(--paper-warm);
+    border-left-color: var(--border);
+    color: var(--ink-soft);
 }
