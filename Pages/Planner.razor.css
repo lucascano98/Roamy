@@ -1,6 +1,6 @@
 ﻿.page {
     display: grid;
-    grid-template-columns: 52px 1fr 500px;
+    grid-template-columns: 52px 1fr minmax(280px, 400px);
     height: 100vh;
 }
 
@@ -16,6 +16,7 @@
     display: flex;
     flex-direction: column;
     background-color: var(--paper);
+    position: relative;
 }
 
 .right-column {
@@ -41,6 +42,99 @@
 
 .center-column .header {
     background-color: var(--paper-warm);
+    padding: var(--space-24) var(--space-32);
+    border-bottom: 1px solid var(--border);
+}
+
+.center-column .header h1 {
+    font-family: var(--font-title);
+    font-size: 32px;
+    color: var(--ink);
+    margin: 0 0 var(--space-4) 0;
+}
+
+.header-details {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-16);
+    align-items: center;
+}
+
+.header-details h2 {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+    font-weight: normal;
+}
+
+.header-details p {
+    font-size: 13px;
+    color: var(--ink-ghost);
+    margin: 0;
+}
+
+.header-divider {
+    width: 1px;
+    height: 12px;
+    background-color: var(--border);
+}
+
+.navigation {
+    display: flex;
+    align-items: center;
+    padding: var(--space-8) var(--space-24);
+    background-color: var(--paper);
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+.navigation button {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--sage-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navigation button svg {
+    width: 30px;
+    height: 30px;
+    fill: currentColor;
+}
+
+.navigation button:hover svg {
+    fill: var(--sage);
+}
+
+.navigation button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.navigation-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.navigation-center .day-number {
+    font-family: var(--font-title);
+    font-size: 24px;
+    color: var(--ink);
+    margin: 0;
+}
+
+.navigation-center .day-date {
+    font-size: 14px;
+    color: var(--ink-ghost);
+    margin: 0;
 }
 
 .center-column .itinerary{
@@ -138,4 +232,18 @@
     background-color: var(--paper-warm);
     border-left-color: var(--border);
     color: var(--ink-soft);
+}
+
+.fab-modal {
+    z-index: 50;
+    position: sticky;
+    bottom: 10px;
+    left: calc(100% - 74px);
+    width: 60px;
+    height: 60px;
+    fill: var(--sage-dark);
+}
+
+.fab-modal svg:hover {
+    fill: var(--sage);
 }

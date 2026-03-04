@@ -39,6 +39,17 @@ namespace Roamy.Services
             SaveAsync();
         }
 
+        public void DeleteActivity(Activity activity)
+        {
+            var currentDay = CurrentTrip.Days.FirstOrDefault(d => d.Activities.Contains(activity));
+            if (currentDay == null) return;
+
+            currentDay.Activities.Remove(activity);
+
+            OnChange?.Invoke();
+            SaveAsync();
+        }
+
         //Future implementation to save Trip data
         private void SaveAsync()
         {

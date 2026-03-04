@@ -21,25 +21,37 @@
     </div>
 
     <div class="center-column">
+
         <div class="header">
-
             <h1>@TripManager.CurrentTrip.Name</h1>
-            <h2>@TripManager.CurrentTrip.Location[0].City, @TripManager.CurrentTrip.Location[0].Country</h2>
-            <h2>@TripManager.CurrentTrip.StartDate.Date.ToString("ddd, MM/dd/yyyy") - @TripManager.CurrentTrip.EndDate.Date.ToString("ddd, MM/dd/yyyy")</h2>
-            <p> @TripManager.CurrentTrip.Days.Count(d => d.Activities.Any()) of @TripManager.CurrentTrip.Days.Count days planned</p>
-        
-        </div>
-        <div class="itinerary">
-            <div class="navigation">
-                
-                <button @onclick="PreviousDay" disabled="@(selectedDate == TripManager.CurrentTrip.StartDate)">&#8592;</button> <!--disable will gray out the arrow if current date == trip start date-->
-
-                <p>Day @dayNumber</p>
-                <p>@selectedDate.ToString("ddd, MM/dd")</p>
-
-                <button @onclick="NextDay" disabled="@(selectedDate == TripManager.CurrentTrip.EndDate)">&#8594;</button>
-            
+            <div class="header-details">
+                <h2>@TripManager.CurrentTrip.Location[0].City, @TripManager.CurrentTrip.Location[0].Country</h2>
+                <div class="header-divider"></div>
+                <h2>@TripManager.CurrentTrip.StartDate.ToString("MMM dd") - @TripManager.CurrentTrip.EndDate.ToString("MMM dd, yyyy")</h2>
+                <div class="header-divider"></div>
+                <p>@TripManager.CurrentTrip.Days.Count(d => d.Activities.Any()) of @TripManager.CurrentTrip.Days.Count days planned</p>
             </div>
+        </div>
+
+        <div class="itinerary">
+
+            <div class="navigation">
+                <button class="left-arrow" @onclick="PreviousDay" disabled="@(selectedDate == TripManager.CurrentTrip.StartDate)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-4.28 9.22a.75.75 0 0 0 0 1.06l3 3a.75.75 0 1 0 1.06-1.06l-1.72-1.72h5.69a.75.75 0 0 0 0-1.5h-5.69l1.72-1.72a.75.75 0 0 0-1.06-1.06l-3 3Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div class="navigation-center">
+                    <p class="day-number">Day @dayNumber</p>
+                    <p class="day-date">@selectedDate.ToString("ddd, MM/dd")</p>
+                </div>
+                <button class="right-arrow" @onclick="NextDay" disabled="@(selectedDate == TripManager.CurrentTrip.EndDate)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+
             <div class="time-grid">
                 @{
                     var currentDay = TripManager.CurrentTrip.GetDayByDate(selectedDate);
@@ -74,11 +86,11 @@
             </div>
             @if (showModal)
             {
-                <ActivityModal Activity="activityToEdit" SelectedDate="selectedDate" OnSave="HandleSave" OnCancel="HandleCancel" />
+                <ActivityModal Activity="activityToEdit" SelectedDate="selectedDate" OnSave="HandleSave" OnCancel="HandleCancel" OnDelete="HandleDelete"/>
             }
         </div>
-        <button  @onclick="OpenAddModal"  class="fab-modal" style="width:50px; height:50px;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--sage)">
+        <button  @onclick="OpenAddModal"  class="fab-modal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />
             </svg>
         </button>
@@ -186,6 +198,14 @@
     private void HandleCancel()
     {
         showModal = false;
+    }
+
+    private async Task HandleDelete(Activity activity)
+    {
+        TripManager.DeleteActivity(activity);
+
+        showModal = false;
+        await Task.CompletedTask;
     }
 
     private async Task HandleSave(Activity activity) //EventCallBack handlers should return Task

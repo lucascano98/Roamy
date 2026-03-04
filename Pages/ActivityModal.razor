@@ -1,36 +1,55 @@
 ﻿@inject TripManager TripManager
 
-<div class="ovarlay">
+<div class="overlay">
     <div class="modal-card">
         <h2>@(Activity == null ? "Add Activity" : "Edit Activity")</h2>
 
-        <label class="activity-modal">Name</label>
-        <input type="text" @bind="name"/>
+        <div class="form-row">
+            <div class="form-field flex-2">
+                <label class="activity-modal">Name</label>
+                <input type="text" @bind="name" />
+            </div>
+            <div class="form-field flex-1">
+                <label class="activity-modal">Category</label>
+                <select @bind="category">
+                    @foreach (var cat in Enum.GetValues<ActivityCategory>())
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+            </div>
+        </div>
 
-        <label class="activity-modal">Category</label>
-        <select @bind="category">
-            @foreach (var category in Enum.GetValues<ActivityCategory>())
-            {
-                <option value="@category">@category</option>
-            }
-        </select>
+        <div class="form-field">
+            <label class="activity-modal">Address</label>
+            <input type="text" placeholder="Optional" @bind="locationAddress" />
+        </div>
 
-        <label class="activity-modal">Address</label>
-        <input type="text" placeholder="Optional" @bind="locationAddress"/>
+        <div class="form-row">
+            <div class="form-field flex-1">
+                <label class="activity-modal">Date</label>
+                <InputDate @bind-Value="date" />
+            </div>
+            <div class="form-field flex-1">
+                <label class="activity-modal">Start Time</label>
+                <input type="time" value="@startTimeString" @onchange="SetStartTime" />
+            </div>
+            <div class="form-field flex-1">
+                <label class="activity-modal">End Time</label>
+                <input type="time" value="@endTimeString" @onchange="SetEndTime" />
+            </div>
+        </div>
 
-        <label class ="activity-modal">Date</label>
-        <input type="date" @bind="date"/>
+        <div class="form-field">
+            <label class="activity-modal">Notes</label>
+            <textarea @bind="notes" rows="3"></textarea>
+        </div>
 
-        <label class="activity-modal">Start Time</label>
-        <input type="time" value="@startTimeString" @onchange="SetStartTime" /> 
-
-        <label class="activity-modal">End Time</label>
-        <input type="time" value="@endTimeString" @onchange="SetEndTime" />
-
-        <label class="activity-modal">Notes</label>
-        <input type="text" @bind="notes"/>
-
-        <button class="cancel" @onclick="HandleCancel">Cancel</button>
+        @if (Activity != null)
+        {
+            <button class="delete" @onclick="DeleteHandler">Delete</button>
+        }
+        <button class="cancel" @onclick="CancelHandler">Cancel</button>
         <button class="save" @onclick="SaveHandler">Save</button>
     </div>
 </div>
@@ -41,6 +60,7 @@
     [Parameter] public Activity? Activity { get; set; }
     [Parameter] public DateTime SelectedDate { get; set; }
     [Parameter] public EventCallback<Activity> OnSave { get; set; } //Returns the info back to the parent
+    [Parameter] public EventCallback<Activity> OnDelete { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; } //Signals to the parent ot close the modal with no data
 
     //Local (temporary) copies of Activity info
@@ -86,9 +106,14 @@
         }
     }
 
-    private async Task HandleCancel()
+    private async Task CancelHandler()
     {
         await OnCancel.InvokeAsync();
+    }
+
+    private async Task DeleteHandler()
+    {
+        await OnDelete.InvokeAsync(Activity);
     }
 
     private async Task SaveHandler()
