@@ -151,6 +151,7 @@
         await OnSave.InvokeAsync(Activity);
     }
 
+    //if start time is empty, then it clears end time
     private void SetStartTime(ChangeEventArgs e)
     {
         startTimeString = e.Value?.ToString() ?? "";

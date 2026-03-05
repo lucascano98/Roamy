@@ -25,31 +25,41 @@
         <div class="header">
             <h1>@TripManager.CurrentTrip.Name</h1>
             <div class="header-details">
+
                 <h2>@TripManager.CurrentTrip.Location[0].City, @TripManager.CurrentTrip.Location[0].Country</h2>
+
                 <div class="header-divider"></div>
+
                 <h2>@TripManager.CurrentTrip.StartDate.ToString("MMM dd") - @TripManager.CurrentTrip.EndDate.ToString("MMM dd, yyyy")</h2>
+                
                 <div class="header-divider"></div>
+                
                 <p>@TripManager.CurrentTrip.Days.Count(d => d.Activities.Any()) of @TripManager.CurrentTrip.Days.Count days planned</p>
+            
             </div>
         </div>
 
         <div class="itinerary">
 
             <div class="navigation">
+
                 <button class="left-arrow" @onclick="PreviousDay" disabled="@(selectedDate == TripManager.CurrentTrip.StartDate)">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-4.28 9.22a.75.75 0 0 0 0 1.06l3 3a.75.75 0 1 0 1.06-1.06l-1.72-1.72h5.69a.75.75 0 0 0 0-1.5h-5.69l1.72-1.72a.75.75 0 0 0-1.06-1.06l-3 3Z" clip-rule="evenodd" />
                     </svg>
                 </button>
+
                 <div class="navigation-center">
                     <p class="day-number">Day @dayNumber</p>
                     <p class="day-date">@selectedDate.ToString("ddd, MM/dd")</p>
                 </div>
+
                 <button class="right-arrow" @onclick="NextDay" disabled="@(selectedDate == TripManager.CurrentTrip.EndDate)">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z" clip-rule="evenodd" />
                     </svg>
                 </button>
+
             </div>
 
             <div class="time-grid">
@@ -57,6 +67,7 @@
                     var currentDay = TripManager.CurrentTrip.GetDayByDate(selectedDate);
                     var scheduledActivities = currentDay?.Activities.Where(a => a.StartTime != null).ToList() ?? new List<Activity>();
                 }
+
                 @for (int i = 0; i <= 95; i++)
                 {
                     <div class="label">
@@ -77,12 +88,17 @@
                         @activity.Name
                     </div>
                 }
+
             </div>
+
             @if (showModal)
             {
+                @*Event callbacks to the ActivityModal*@
                 <ActivityModal Activity="activityToEdit" SelectedDate="selectedDate" OnSave="HandleSave" OnCancel="HandleCancel" OnDelete="HandleDelete"/>
             }
+
         </div>
+
         <button  @onclick="OpenAddModal"  class="fab-modal">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />
@@ -125,7 +141,7 @@
 @code {
     enum ActivePanel { None, Map, Shortlist }
 
-    private ActivePanel currentPanel = ActivePanel.Shortlist; //default panel is the map
+    private ActivePanel currentPanel = ActivePanel.Shortlist; //default panel is the shortlist
 
     private void SetPanel(ActivePanel panel)
     {
@@ -135,33 +151,38 @@
     private DateTime selectedDate;
     private int dayNumber;
 
+    //Runs once the program is initialized (before screen renders)
+    //Protected is only accessible within Planner and inherited classes
     protected override void OnInitialized()
     {
         selectedDate = TripManager.CurrentTrip.StartDate;
         UpdateDayNumber();
     }
 
+    //Find the Grid row for a certain time (1440 min/day, with a row every 15 minutes = 96 rows)
     private int GetGridRow(TimeSpan startTime )
     {
         return (int)(startTime.TotalMinutes / 15) + 1;
     }
 
+    //Finds the height (span) of an activity card based on duration
     private int GetGridRowSpan(TimeSpan duration)
     {
         if (duration.TotalMinutes <= 0)
         {
             return 1;
         }
-        return (int)Math.Ceiling(duration.TotalMinutes / 15);
+        return (int)Math.Ceiling(duration.TotalMinutes / 15); //round up to properly fill in the card
     }
 
+    // use percent of the day so placement of activity card scales with container height
     private string GetTopPx(TimeSpan startTime)
     {
-        // use percent of the day so placement scales with container height
         var percent = startTime.TotalMinutes / 1440.0 * 100.0; // 1440 minutes in a day
-        return $"{percent.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}%";
+        return $"{percent.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}%"; //creates 4 decimal places with no trailing 0s. Also uses a '.' for decimal regardless of regional setting as to not break CSS.
     }
 
+    // find the height of the activity card
     private string GetHeightPx(TimeSpan duration)
     {
         var percent = duration.TotalMinutes / 1440.0 * 100.0;
@@ -224,6 +245,7 @@
         await Task.CompletedTask;
     }
 
+    //Async method that deletes an activity, closes the modal, and signals that it has completed.
     private async Task HandleSave(Activity activity) //EventCallBack handlers should return Task
     {
         if (activityToEdit == null)
