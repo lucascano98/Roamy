@@ -68,12 +68,6 @@
                     <div class="events @(i % 4 == 0 ? "hour-mark" : i % 2 == 0 ? "half-hour-mark" : "") @(i == 95 ? "last-row" : "")">
                     </div>
                 }
-                @* @foreach (var activity in scheduledActivities.Where(a => GetGridRow(a.StartTime.Value) == i + 1))
-                {
-                    <div class="activity-card @GetCategoryClass(activity.Category)" @onclick="() => OpenEditModal(activity)">
-                        @activity.Name
-                    </div>
-                } *@
 
                 @foreach(var activity in scheduledActivities)
                 {
@@ -100,11 +94,30 @@
     <div class="right-column">
         @if (currentPanel == ActivePanel.Map)
         {
-            <p>Map is showing</p>
+            <div class="map">
+                <h2>Coming soon...</h2>
+            </div>
         }
         else if(currentPanel == ActivePanel.Shortlist)
         {
-            <p>Shortlist is showing</p>
+            <div class="shortlist">
+                <h2>Shortlist</h2>
+
+                @if (!TripManager.CurrentTrip.Shortlist.Any())
+                {
+                    <p>No activities saved yet</p>
+                }
+                else
+                {
+                    foreach (var activity in TripManager.CurrentTrip.Shortlist)
+                    {
+                        <div class="shortlist-item" @onclick="() => OpenEditModal(activity)">
+                            <p class="shortlist-name">@activity.Name</p>
+                            <p class="shortlist-category">@GetCategoryDisplayName(activity.Category ?? ActivityCategory.Other)</p>
+                        </div>
+                    }
+                }
+            </div>
         }
     </div>
 </div>
@@ -112,7 +125,7 @@
 @code {
     enum ActivePanel { None, Map, Shortlist }
 
-    private ActivePanel currentPanel = ActivePanel.Map; //default panel is the map
+    private ActivePanel currentPanel = ActivePanel.Shortlist; //default panel is the map
 
     private void SetPanel(ActivePanel panel)
     {
@@ -202,7 +215,10 @@
 
     private async Task HandleDelete(Activity activity)
     {
-        TripManager.DeleteActivity(activity);
+        if (TripManager.CurrentTrip.Shortlist.Contains(activity))
+            TripManager.RemoveFromShortlist(activity);
+        else
+            TripManager.DeleteActivity(activity);
 
         showModal = false;
         await Task.CompletedTask;
@@ -214,7 +230,27 @@
             TripManager.AddActivity(activity);
         else
         {
-            TripManager.EditActivity(activity);
+            bool isOnShortList = TripManager.CurrentTrip.Shortlist.Contains(activityToEdit);
+            bool isOnCalendar = TripManager.CurrentTrip.Days.Any(d => d.Activities.Contains(activityToEdit));
+
+            if (isOnCalendar && (activity.Date == null || activity.StartTime == null))
+            {
+                TripManager.EditActivity(activityToEdit); //removes from the current day
+                TripManager.AddToShortlist(activity); //adds to Shortlist
+            }
+            else if (isOnShortList && activity.Date != null && activity.StartTime != null)
+            {
+                TripManager.RemoveFromShortlist(activityToEdit);
+                TripManager.AddActivity(activity);
+            }
+            else if (isOnShortList)
+            {
+                TripManager.EditShortListActivity(activityToEdit, activity);
+            }
+            else
+            {
+                TripManager.EditActivity(activity);
+            }
         }
 
         showModal = false;
@@ -231,5 +267,11 @@
         ActivityCategory.Lodging => "cat-lodging",
         ActivityCategory.Event => "cat-event",
         _ => "cat-other"
+    };
+
+    private string GetCategoryDisplayName(ActivityCategory category) => category switch
+    {
+        ActivityCategory.FoodAndDrink => "Food & Drink",
+        _ => category.ToString()
     };
 }

@@ -10,6 +10,7 @@ namespace Roamy.Models
         public DateTime EndDate { get; set; }
         public List<TripLocation> Location { get; set; } = new List<TripLocation>(); //creates an empty list once class is created
         public List<Day> Days { get; set; } = new List<Day>();
+        public List<Activity> Shortlist { get; set; } = new List<Activity>();
 
         public Trip(TripLocation location, DateTime startDate, DateTime endDate)
         {
@@ -54,15 +55,5 @@ namespace Roamy.Models
                 Days.Add(newDay);
             }
         }
-
-
-        //Fetch Day by num("Day 3")
-        //Add Day(s)
-        //Delete Day(s)
-        //Move activities across days
-        //Search for activities within the whole trip
-        //Add location(s)
-        //Remove location(s)
-        //(Optional) View all activities across all days (table view)
     }
 }

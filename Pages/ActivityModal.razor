@@ -14,7 +14,7 @@
                 <select @bind="category">
                     @foreach (var cat in Enum.GetValues<ActivityCategory>())
                     {
-                        <option value="@cat">@cat</option>
+                        <option value="@cat">@GetCategoryDisplayName(cat)</option>
                     }
                 </select>
             </div>
@@ -36,7 +36,7 @@
             </div>
             <div class="form-field flex-1">
                 <label class="activity-modal">End Time</label>
-                <input type="time" value="@endTimeString" @onchange="SetEndTime" />
+                <input type="time" value="@endTimeString" @onchange="SetEndTime" disabled = "@(string.IsNullOrEmpty(startTimeString))"/>
             </div>
         </div>
 
@@ -99,7 +99,7 @@
             name = "";
             category = ActivityCategory.Other;
             location = null;
-            date = SelectedDate; //pre-populate Date with selectedDate
+            date = null;
             startTimeString = "";
             endTimeString = "";
             notes = null;
@@ -127,6 +127,9 @@
         if (!string.IsNullOrEmpty(endTimeString))
             parsedEndTime = TimeSpan.Parse(endTimeString);
 
+        if (string.IsNullOrEmpty(startTimeString))
+            endTimeString = "";
+
         var activityLocation = new ActivityLocation(TripManager.CurrentTrip.Location[0], locationAddress);
 
         if (Activity == null)
@@ -151,10 +154,23 @@
     private void SetStartTime(ChangeEventArgs e)
     {
         startTimeString = e.Value?.ToString() ?? "";
+        if (!string.IsNullOrEmpty(startTimeString))
+        {
+            TimeSpan start = TimeSpan.Parse(startTimeString);
+            TimeSpan end = start.Add(TimeSpan.FromHours(1));
+            endTimeString = end.ToString(@"hh\:mm");
+        }
     }
 
     private void SetEndTime(ChangeEventArgs e)
     {
         endTimeString = e.Value?.ToString() ?? "";
     }
+
+    //helper method to change category name from FoodAndDrink (enum value) to "Food & Drink"
+    private string GetCategoryDisplayName(ActivityCategory category) => category switch
+    {
+        ActivityCategory.FoodAndDrink => "Food & Drink",
+        _ => category.ToString()
+    };
 }

@@ -247,3 +247,50 @@
 .fab-modal svg:hover {
     fill: var(--sage);
 }
+
+.shortlist-panel {
+    padding: var(--space-16);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    overflow-y: auto;
+    height: 100%;
+}
+
+.shortlist-panel h2 {
+    font-family: var(--font-title);
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--border);
+}
+
+.shortlist-item {
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--radius-md);
+    background: var(--paper-card);
+    border: 1px solid var(--border-soft);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.shortlist-item:hover {
+    border-color: var(--sage);
+    background: var(--sage-light);
+}
+
+.shortlist-name {
+    font-size: 14px;
+    color: var(--ink);
+    margin: 0;
+    font-weight: 500;
+}
+
+.shortlist-category {
+    font-size: 11px;
+    color: var(--ink-ghost);
+    margin: 0;
+}

@@ -21,7 +21,10 @@ namespace Roamy.Services
 
         public void AddActivity(Activity activity)
         {
-            CurrentTrip.AddActivityByDate(activity);
+            if (activity.Date == null || activity.StartTime == null)
+                AddToShortlist(activity);
+            else
+                CurrentTrip.AddActivityByDate(activity);
 
             OnChange?.Invoke(); //If anything is subscribed to OnChange, call it. Else, do nothing
             SaveAsync();
@@ -45,6 +48,36 @@ namespace Roamy.Services
             if (currentDay == null) return;
 
             currentDay.Activities.Remove(activity);
+
+            OnChange?.Invoke();
+            SaveAsync();
+        }
+
+        public void AddToShortlist(Activity activity)
+        {
+            CurrentTrip.Shortlist.Add(activity);
+
+            OnChange?.Invoke();
+            SaveAsync();
+        }
+
+        public void RemoveFromShortlist(Activity activity)
+        {
+            CurrentTrip.Shortlist.Remove(activity);
+
+            OnChange?.Invoke();
+            SaveAsync();
+        }
+
+        public void EditShortListActivity(Activity original, Activity updated)
+        {
+            original.Name = updated.Name;
+            original.Category = updated.Category;
+            original.Location = updated.Location;
+            original.Date = updated.Date;
+            original.StartTime = updated.StartTime;
+            original.EndTime = updated.EndTime;
+            original.Notes = updated.Notes;
 
             OnChange?.Invoke();
             SaveAsync();
