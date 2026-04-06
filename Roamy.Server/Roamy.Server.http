@@ -1,0 +1,6 @@
+@Roamy.Server_HostAddress = http://localhost:5291
+
+GET {{Roamy.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

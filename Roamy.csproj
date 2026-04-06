@@ -13,7 +13,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Roamy.Shared\Roamy.Shared.csproj" />
+    <ProjectReference Include="Roamy.Shared\Roamy.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Roamy.Shared\**" />
+    <Compile Remove="Roamy.Server\**" />
+    <Content Remove="Roamy.Shared\**" />
+    <Content Remove="Roamy.Server\**" />
+    <EmbeddedResource Remove="Roamy.Shared\**" />
+    <EmbeddedResource Remove="Roamy.Server\**" />
+    <None Remove="Roamy.Shared\**" />
+    <None Remove="Roamy.Server\**" />
   </ItemGroup>
 
 </Project>

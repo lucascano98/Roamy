@@ -5,9 +5,9 @@ VisualStudioVersion = 18.3.11512.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roamy", "Roamy.csproj", "{561DB01D-25D6-C6A2-C1C8-93FBB4791043}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roamy.Server", "..\Roamy.Server\Roamy.Server.csproj", "{FD791BAF-C282-46CE-A8D2-A13935A201F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roamy.Server", "Roamy.Server\Roamy.Server.csproj", "{FD791BAF-C282-46CE-A8D2-A13935A201F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roamy.Shared", "..\Roamy.Shared\Roamy.Shared.csproj", "{C476B802-3CCA-40D0-94AC-82FEA6103CC0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roamy.Shared", "Roamy.Shared\Roamy.Shared.csproj", "{C476B802-3CCA-40D0-94AC-82FEA6103CC0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
