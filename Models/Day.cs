@@ -11,7 +11,7 @@ namespace Roamy.Models
         public int DayNumber { get; }
         public List<Activity> Activities { get; set; } = new List<Activity>();
         public string? Weather { get; set; }
-        //Time conflict validation
+        
 
         public Day(Guid tripId, DateTime date, int dayNumber)
         {
