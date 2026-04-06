@@ -1,4 +1,4 @@
-﻿using Roamy.Models;
+﻿using Roamy.Shared.Models;
 using System.Runtime.CompilerServices;
 
 namespace Roamy.Services
