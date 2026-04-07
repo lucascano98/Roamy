@@ -12,6 +12,8 @@ namespace Roamy.Shared.Models
         public List<Day> Days { get; set; } = new List<Day>();
         public List<Activity> Shortlist { get; set; } = new List<Activity>();
 
+        public Trip() { }
+
         public Trip(TripLocation location, DateTime startDate, DateTime endDate)
         {
             Location.Add(location);

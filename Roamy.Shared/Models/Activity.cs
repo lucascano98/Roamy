@@ -24,6 +24,8 @@
 
         public TimeSpan? Duration => EndTime - StartTime;
 
+        public Activity() { }
+
         public Activity(string name, ActivityCategory? category, Guid? dayId = null, DateTime? date = null, TimeSpan ? startTime = null, TimeSpan? endTime = null, string? notes = null)
         {
             DayId = dayId;
