@@ -49,6 +49,9 @@ Each category has its own color theme across the app:
 |---|---|
 | Framework | Blazor WebAssembly (.NET) |
 | Language | C# |
+| Backend | ASP.NET Core Web API (.NET 10) |
+| Database | PostgreSQL via Supabase |
+| ORM | EF Core 10 + Npgsql |
 | Styling | CSS Grid, CSS Custom Properties, Scoped CSS |
 | State Management | Singleton service (`TripManager`) with `Action` event callbacks |
 | Routing | Blazor built-in routing (`@page`) |
@@ -61,23 +64,42 @@ Each category has its own color theme across the app:
 ## Architecture
 
 ```
-Roamy/
+Roamy/                              ← solution root (.sln lives here)
+├── Roamy.Server/
+│   ├── Controllers/
+│   │   └── WeatherForecastController.cs
+│   ├── Data/
+│   │   ├── AppDbContext.cs
+│   │   └── DesignTimeDbContextFactory.cs
+│   ├── Migrations/
+│   ├── Repositories/
+│   │   ├── BaseRepository.cs
+│   │   ├── ITripRepository.cs / TripRepository.cs
+│   │   ├── IActivityRepository.cs / ActivityRepository.cs
+│   │   ├── IDayRepository.cs / DayRepository.cs
+│   │   ├── ITripLocationRepository.cs / TripLocationRepository.cs
+│   │   └── IActivityLocationRepository.cs / ActivityLocationRepository.cs
+│   ├── appsettings.json
+│   └── Program.cs
+├── Roamy.Shared/
+│   └── Models/
+│       ├── Trip.cs
+│       ├── Day.cs
+│       ├── Activity.cs
+│       ├── TripLocation.cs
+│       └── ActivityLocation.cs
 ├── Pages/
-│   ├── Home.razor              # Trip creation form
-│   └── Planner.razor           # Main planner with day view calendar
-├── Components/
-│   └── ActivityModal.razor     # Unified Add/Edit activity modal
-├── Models/
-│   ├── Trip.cs                 # Trip with days and shortlist
-│   ├── Day.cs                  # Day with sorted activity list
-│   ├── Activity.cs             # Activity with scheduling properties
-│   ├── TripLocation.cs         # City + country
-│   ├── ActivityLocation.cs     # Place name + address
-│   └── ActivityCategory.cs     # Enum — Sightseeing, FoodAndDrink, etc.
+│   ├── Home.razor + Home.razor.css
+│   ├── Planner.razor + Planner.razor.css
+│   └── ActivityModal.razor + ActivityModal.razor.css
+├── Layout/
+│   ├── MainLayout.razor
+│   └── LandingLayout.razor
 ├── Services/
-│   └── TripManager.cs          # Singleton service — all data mutations
+│   └── TripManager.cs
 └── wwwroot/
-    └── app.css                 # Global design system (CSS variables)
+    └── css/
+        └── app.css
 ```
 
 ### Key Design Decisions
@@ -98,14 +120,28 @@ Roamy/
 ## Roadmap
 
 ### Coming in V2
-- [ ] PostgreSQL database via Supabase + Entity Framework Core
-- [ ] ASP.NET Core backend API
+- [x] PostgreSQL database via Supabase + Entity Framework Core
+- [x] ASP.NET Core backend API
 - [ ] Interactive map panel with Leaflet.js
 - [ ] Activity pins on map colored by category
 - [ ] Google Places autocomplete for activity addresses
 - [ ] Overlapping activity cards (side by side like Google Calendar)
 - [ ] Current time indicator line on the calendar
 - [ ] Toast notifications with undo for delete
+
+---
+
+## Development
+
+### Branching Strategy
+- **Default branch:** `dev` — all feature work branches off here
+- **Protected branch:** `main` — requires a PR to merge, never commit directly
+- **Branch naming:** `feature/issue-N-short-description`
+- **PR descriptions:** always include `Closes #N` to auto-close the related issue on merge
+
+### Setup Notes
+- `appsettings.Development.json` is gitignored — this file contains the Supabase connection string and should never be committed. If you clone this repo, you will need to create this file locally with your own connection string.
+- `Update-Database` does not work with Supabase + Npgsql 10. Always use `Script-Migration` to generate SQL and run it manually in the Supabase SQL Editor instead.
 
 ---
 
