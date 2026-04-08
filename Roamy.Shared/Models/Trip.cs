@@ -4,7 +4,7 @@ namespace Roamy.Shared.Models
 {
     public class Trip
     {
-        public Guid TripId { get; private set; } = Guid.NewGuid(); //Guid = Globally Unique Identifier
+        public Guid TripId { get; set; } = Guid.NewGuid(); //Guid = Globally Unique Identifier
         public string Name { get; set; } = "MyTrip";
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

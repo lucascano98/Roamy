@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Roamy.Server.Data;
+using Roamy.Server.Repositories;
 
 namespace Roamy.Server
 {
@@ -13,6 +14,11 @@ namespace Roamy.Server
 
             builder.Services.AddControllers();
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+            builder.Services.AddScoped<IActivityLocationRepository, ActivityLocationRepository>();
+            builder.Services.AddScoped<IDayRepository, DayRepository>();
+            builder.Services.AddScoped<ITripRepository, TripRepository>();
+            builder.Services.AddScoped<ITripLocationRepository, TripLocationRepository>();
 
             var app = builder.Build();
 
