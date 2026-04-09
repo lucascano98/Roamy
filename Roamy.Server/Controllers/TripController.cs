@@ -87,7 +87,7 @@ namespace Roamy.Server.Controllers
                 if (trip == null)
                     return NotFound();
                 await _tripRepository.DeleteTripAsync(id);
-                return Ok("Delete successful");
+                return Ok("Trip successfully deleted");
             }
             catch (Exception ex)
             {
