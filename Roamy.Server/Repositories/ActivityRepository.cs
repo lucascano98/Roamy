@@ -36,6 +36,16 @@ namespace Roamy.Server.Repositories
             return activities;
         }
 
+        public async Task<IEnumerable<Activity>> GetShortlistByTripAsync(Guid tripId)
+        {
+            //Join Activities to Days on DayId, filter where the day belongs to the trip AND the activity has no date, then return just the activities.
+            var activities = await _context.Activities
+                .Join(_context.Days, activity => activity.DayId, day => day.DayId, (activity, day) => new { activity, day })
+                .Where(x => x.day.TripId == tripId && x.activity.Date == null)
+                .Select(x => x.activity).ToListAsync();
+            return activities;
+        }
+
         public async Task UpdateActivityAsync(Activity activity)
         {
             _context.Activities.Update(activity);
