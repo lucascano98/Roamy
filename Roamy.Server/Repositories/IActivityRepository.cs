@@ -6,6 +6,7 @@ namespace Roamy.Server.Repositories
     {
         Task<Activity?> GetActivityByIdAsync(Guid id);
         Task<IEnumerable<Activity>> GetAllActivitiesByDayAsync(Guid dayId);
+        Task<IEnumerable<Activity>> GetShortlistByTripAsync(Guid tripId);
         Task<Activity?> AddActivityAsync(Activity activity);
         Task UpdateActivityAsync(Activity activity);
         Task DeleteActivityAsync(Guid id);
