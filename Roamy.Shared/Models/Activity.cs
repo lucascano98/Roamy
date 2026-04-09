@@ -12,7 +12,7 @@
 
     public class Activity
     {
-        public Guid ActivityId { get; private set; } = Guid.NewGuid();
+        public Guid ActivityId { get; set; } = Guid.NewGuid();
         public Guid? DayId { get; set; }
         public string Name { get; set; }
         public ActivityCategory? Category { get; set; }

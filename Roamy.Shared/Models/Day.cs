@@ -5,7 +5,7 @@ namespace Roamy.Shared.Models
 {
     public class Day
     {
-        public Guid DayId { get; private set; } = Guid.NewGuid();
+        public Guid DayId { get; set; } = Guid.NewGuid();
         public Guid TripId { get; set; }
         public DateTime Date { get; set; }
         public int DayNumber { get; set; }
