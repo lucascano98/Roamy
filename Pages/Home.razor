@@ -53,7 +53,7 @@
     string? error;
     private TripFormModel formModel = new TripFormModel();
 
-    private void HandleSubmit()
+    private async Task HandleSubmit() //becomes async since it needs to talk to the database
     {
         if (formModel.StartDate > formModel.EndDate)
         {
@@ -74,8 +74,9 @@
 
         TripLocation tripLocation = new TripLocation(city, country);
 
-        TripManager.StartTrip(tripLocation, formModel.StartDate.Value, formModel.EndDate.Value);
-        Navigation.NavigateTo("/planner");
+        //create trip var to extract the tripId for navigation
+        var createdTrip = await TripManager.StartTrip(tripLocation, formModel.StartDate.Value, formModel.EndDate.Value); 
+        Navigation.NavigateTo($"/planner/{createdTrip.TripId}");
     }
 
     private class TripFormModel //a model is required to use EditForm in Blazor

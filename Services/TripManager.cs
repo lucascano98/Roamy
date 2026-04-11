@@ -1,20 +1,27 @@
 ﻿using Roamy.Shared.Models;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 
 namespace Roamy.Services
 {
     public class TripManager
     {
-        public Trip CurrentTrip { get; set; }
+        public Trip? CurrentTrip { get; set; }
+        private readonly HttpClient _http;
 
-        public void StartTrip(TripLocation location, DateTime startDate, DateTime endDate)
+        public async Task<Trip> StartTrip(TripLocation location, DateTime startDate, DateTime endDate)
         {
-            CurrentTrip = new Trip(location, startDate, endDate);
-             
+            var trip = new Trip(location, startDate, endDate); //construct a new trip
+            var response = await _http.PostAsJsonAsync("api/trips", trip); //POST the new trip
+            var createdTrip = await response.Content.ReadFromJsonAsync<Trip>(); //confirm the trip has been created
+            if (createdTrip == null)
+                throw new NullReferenceException("Failed to create a trip.");
+            CurrentTrip = createdTrip; //set the new created trip to CurrentTrip
+            return createdTrip; //return the created trip
         }
-        public TripManager()
+        public TripManager(HttpClient http)
         {
-
+            _http = http;
         }
 
         public event Action? OnChange; //Action is a delegate
