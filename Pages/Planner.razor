@@ -1,4 +1,4 @@
-﻿@page "/planner"
+﻿@page "/planner/{TripId:guid}"
 @inject TripManager TripManager
 
 
@@ -139,6 +139,8 @@
 </div>
 
 @code {
+    [Parameter]
+    public Guid TripId {get; set;}
     enum ActivePanel { None, Map, Shortlist }
 
     private ActivePanel currentPanel = ActivePanel.Shortlist; //default panel is the shortlist
@@ -153,9 +155,10 @@
 
     //Runs once the program is initialized (before screen renders)
     //Protected is only accessible within Planner and inherited classes
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        selectedDate = TripManager.CurrentTrip.StartDate;
+        await TripManager.GetTripAsync(TripId);
+        selectedDate = TripManager.CurrentTrip.StartDate.Date;
         UpdateDayNumber();
     }
 
@@ -211,7 +214,9 @@
 
     private void UpdateDayNumber()
     {
-        dayNumber = TripManager.CurrentTrip.Days[TripManager.CurrentTrip.Days.FindIndex(d => d.Date.Date == selectedDate)].DayNumber;
+        dayNumber = TripManager.CurrentTrip.Days[
+            TripManager.CurrentTrip.Days.FindIndex(d => d.Date.Date == selectedDate.Date)
+        ].DayNumber;
     }
 
     private bool showModal = false;

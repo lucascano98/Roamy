@@ -1,6 +1,7 @@
 ﻿using Roamy.Shared.Models;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace Roamy.Services
 {
@@ -25,6 +26,15 @@ namespace Roamy.Services
         }
 
         public event Action? OnChange; //Action is a delegate
+
+        public async Task<Trip> GetTripAsync(Guid tripId)
+        {
+            var trip = await _http.GetFromJsonAsync<Trip>($"api/trips/{tripId}");
+            if (trip == null)
+                throw new NullReferenceException("Failed to find a trip.");
+            CurrentTrip = trip;
+            return CurrentTrip;
+        }
 
         public void AddActivity(Activity activity)
         {
