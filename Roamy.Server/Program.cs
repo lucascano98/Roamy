@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Roamy.Server.Data;
 using Roamy.Server.Repositories;
@@ -8,6 +9,8 @@ namespace Roamy.Server
     {
         public static void Main(string[] args)
         {
+            //Tell Npgsql to handle unspecified DateTimes as UTC globally
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +23,12 @@ namespace Roamy.Server
                     policy.WithOrigins("https://localhost:7180", "http://localhost:5028").AllowAnyHeader().AllowAnyMethod();
                 });
             });
-            builder.Services.AddControllers();
+            //Circular reference problem: Trip has a Location list, TripLocation has a Trip navigation property back to Trip, which has Location again.
+            //AddJsonOptions to handle cycles
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

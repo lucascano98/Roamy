@@ -34,7 +34,16 @@ namespace Roamy.Server.Repositories
 
         public async Task<Trip?> GetTripByIdAsync(Guid id)
         { 
-            var trip = await _context.Trips.FindAsync(id);
+            // EF Core doesn't automatically load related data (Days, Location) when fetching a Trip.
+            // Include() tells EF Core to JOIN and load those related tables in the same query so the returned Trip object has its Days and Location lists populated.
+            //ThenInclude is how you load a nested navigation property — it says "for each Day you included, also include its Activities."
+            var trip = await _context.Trips
+                .Include(t => t.Days)
+                .ThenInclude(d => d.Activities)
+                .ThenInclude(a => a.Location)
+                .Include(t => t.Location)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(t => t.TripId == id);
             return trip;
         }
 

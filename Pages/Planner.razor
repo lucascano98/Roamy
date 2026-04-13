@@ -1,8 +1,16 @@
-﻿@page "/planner"
+﻿@page "/planner/{TripId:guid}"
 @inject TripManager TripManager
+@implements IDisposable
 
 
 <PageTitle>Trip Planner</PageTitle>
+
+@if (TripManager.CurrentTrip == null)
+{
+    <p>Loading...</p>
+    return;
+}
+
 <div class="page">
     <div class="left-column">
 
@@ -139,6 +147,8 @@
 </div>
 
 @code {
+    [Parameter]
+    public Guid TripId {get; set;}
     enum ActivePanel { None, Map, Shortlist }
 
     private ActivePanel currentPanel = ActivePanel.Shortlist; //default panel is the shortlist
@@ -153,10 +163,17 @@
 
     //Runs once the program is initialized (before screen renders)
     //Protected is only accessible within Planner and inherited classes
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        selectedDate = TripManager.CurrentTrip.StartDate;
+        await TripManager.GetTripAsync(TripId);
+        selectedDate = TripManager.CurrentTrip.StartDate.Date;
         UpdateDayNumber();
+        TripManager.OnChange += StateHasChanged;
+    }
+
+    public void Dispose() 
+    {
+        TripManager.OnChange -= StateHasChanged;
     }
 
     //Find the Grid row for a certain time (1440 min/day, with a row every 15 minutes = 96 rows)
@@ -211,7 +228,9 @@
 
     private void UpdateDayNumber()
     {
-        dayNumber = TripManager.CurrentTrip.Days[TripManager.CurrentTrip.Days.FindIndex(d => d.Date.Date == selectedDate)].DayNumber;
+        dayNumber = TripManager.CurrentTrip.Days[
+            TripManager.CurrentTrip.Days.FindIndex(d => d.Date.Date == selectedDate.Date)
+        ].DayNumber;
     }
 
     private bool showModal = false;
@@ -236,48 +255,23 @@
 
     private async Task HandleDelete(Activity activity)
     {
-        if (TripManager.CurrentTrip.Shortlist.Contains(activity))
-            TripManager.RemoveFromShortlist(activity);
-        else
-            TripManager.DeleteActivity(activity);
-
+        await TripManager.DeleteActivity(activity);
         showModal = false;
-        await Task.CompletedTask;
     }
 
     //Async method that deletes an activity, closes the modal, and signals that it has completed.
     private async Task HandleSave(Activity activity) //EventCallBack handlers should return Task
     {
         if (activityToEdit == null)
-            TripManager.AddActivity(activity);
+            await TripManager.AddActivity(activity);
         else
         {
-            bool isOnShortList = TripManager.CurrentTrip.Shortlist.Contains(activityToEdit);
-            bool isOnCalendar = TripManager.CurrentTrip.Days.Any(d => d.Activities.Contains(activityToEdit));
-
-            if (isOnCalendar && (activity.Date == null || activity.StartTime == null))
-            {
-                TripManager.EditActivity(activityToEdit); //removes from the current day
-                TripManager.AddToShortlist(activity); //adds to Shortlist
-            }
-            else if (isOnShortList && activity.Date != null && activity.StartTime != null)
-            {
-                TripManager.RemoveFromShortlist(activityToEdit);
-                TripManager.AddActivity(activity);
-            }
-            else if (isOnShortList)
-            {
-                TripManager.EditShortListActivity(activityToEdit, activity);
-            }
-            else
-            {
-                TripManager.EditActivity(activity);
-            }
+            Console.WriteLine($"Editing activity: {activity.ActivityId}");
+            await TripManager.EditActivity(activity);
         }
 
         showModal = false;
-
-        await Task.CompletedTask;
+        StateHasChanged();
     }
 
     //decides class name for activity-card based on category

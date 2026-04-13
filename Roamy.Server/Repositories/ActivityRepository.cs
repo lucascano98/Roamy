@@ -10,6 +10,12 @@ namespace Roamy.Server.Repositories
 
         public async Task<Activity?> AddActivityAsync(Activity activity)
         {
+            // Clear the Area navigation property so EF won't try to re-insert the existing
+            // TripLocation. AreaTripLocationId (the explicit FK) is already set and is enough
+            // for EF to write the correct foreign key value when inserting the ActivityLocation row.
+            if (activity.Location is not null)
+                activity.Location.Area = null;
+
             await _context.Activities.AddAsync(activity);
             await SaveAsync();
             return activity;
@@ -48,7 +54,35 @@ namespace Roamy.Server.Repositories
 
         public async Task UpdateActivityAsync(Activity activity)
         {
-            _context.Activities.Update(activity);
+            var existing = await _context.Activities
+                .Include(a => a.Location)
+                .FirstAsync(a => a.ActivityId == activity.ActivityId);
+
+            existing.Name = activity.Name;
+            existing.Category = activity.Category;
+            existing.Date = activity.Date;
+            existing.DayId = activity.DayId;
+            existing.StartTime = activity.StartTime;
+            existing.EndTime = activity.EndTime;
+            existing.Notes = activity.Notes;
+
+            if (activity.Location != null)
+            {
+                if (existing.Location != null)
+                {
+                    existing.Location.AreaTripLocationId = activity.Location.AreaTripLocationId;
+                    existing.Location.Address = activity.Location.Address;
+                }
+                else
+                {
+                    existing.Location = new ActivityLocation
+                    {
+                        AreaTripLocationId = activity.Location.AreaTripLocationId,
+                        Address = activity.Location.Address
+                    };
+                }
+            }
+
             await SaveAsync();
         }
     }
