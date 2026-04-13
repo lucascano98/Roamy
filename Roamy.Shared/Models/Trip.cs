@@ -24,14 +24,7 @@ namespace Roamy.Shared.Models
 
         public Day? GetDayByDate(DateTime activityDate)
         {
-            int dayIndex = (activityDate.Date - StartDate.Date).Days;
-            if (dayIndex < 0 || dayIndex >= Days.Count)
-            {
-                //Print: date is outside of trip range.
-                return null;
-            }
-
-            return Days[dayIndex];
+            return Days.FirstOrDefault(d => d.Date.Date == activityDate.Date);
         }
 
         public void AddActivityByDate(Activity activity)

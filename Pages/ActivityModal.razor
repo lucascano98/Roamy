@@ -130,21 +130,32 @@
         if (string.IsNullOrEmpty(startTimeString))
             endTimeString = "";
 
-        var activityLocation = new ActivityLocation(TripManager.CurrentTrip.Location[0], locationAddress);
-
         if (Activity == null)
         {
             Activity = new Activity(name, category, null, date, parsedStartTime, parsedEndTime, notes);
-            Activity.Location = activityLocation;
+            Activity.Location = new ActivityLocation(TripManager.CurrentTrip.Location[0], locationAddress);
         }
         else
         {
             Activity.Name = name;
-            Activity.Location = activityLocation;
+            Activity.Category = category;
             Activity.Date = date;
             Activity.StartTime = parsedStartTime;
             Activity.EndTime = parsedEndTime;
             Activity.Notes = notes;
+
+            // Update the existing ActivityLocation in-place rather than replacing it.
+            // Creating a new one gives it a new Guid and a blank ActivityId, which breaks
+            // the FK constraint when EF tries to save it.
+            if (Activity.Location != null)
+            {
+                Activity.Location.AreaTripLocationId = TripManager.CurrentTrip.Location[0].TripLocationId;
+                Activity.Location.Address = locationAddress;
+            }
+            else
+            {
+                Activity.Location = new ActivityLocation(TripManager.CurrentTrip.Location[0], locationAddress);
+            }
         }
 
         //call the Save method , pass it the Activity just created, and wait for it to finish.
