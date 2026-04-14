@@ -1,0 +1,56 @@
+@using System.Threading
+@inject HttpClient Http
+
+<input type="text" placeholder="Search for a city..." @oninput="OnSearchInput" />
+
+@code {
+    // Separate HttpClient for Mapbox API calls — we can't use the injected Http
+    // because its BaseAddress points to our server (localhost:5291), not Mapbox
+    private readonly HttpClient _mapboxClient = new HttpClient();
+
+    // Generated once per component instance — Mapbox uses this to group
+    // suggest + retrieve calls together for billing purposes
+    private readonly string _sessionToken = Guid.NewGuid().ToString();
+
+    // Fetched from our server's config endpoint on init — never hardcoded
+    private string _accessToken = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Call our own API to get the Mapbox token securely
+        // Token lives in appsettings.Development.json (gitignored), never in client code
+        _accessToken = await Http.GetStringAsync("api/config");
+    }
+
+    private Timer? _debounceTimer;
+    private string searchQuery = "";
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? "";
+
+        // Debouncing — dispose the previous timer and start a new one
+        // This means the API call only fires 300ms after the user STOPS typing
+        // Without this, we'd fire a call on every single keystroke
+        _debounceTimer?.Dispose();
+        _debounceTimer = new Timer(async _ => {
+            await SearchLocations();
+            // Timer runs on a background thread, not Blazor's UI thread
+            // InvokeAsync marshals the StateHasChanged call back to the UI thread
+            // so Blazor can safely re-render with the new suggestions
+            await InvokeAsync(StateHasChanged);
+        }, null, 300, Timeout.Infinite);
+    }
+
+    private async Task SearchLocations()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+
+        // Build the Mapbox Search Box suggest URL with required parameters
+        var url = $"https://api.mapbox.com/search/searchbox/v1/suggest?q={searchQuery}&session_token={_sessionToken}&access_token={_accessToken}&language=en";
+
+        // Get raw JSON response from Mapbox
+        var response = await _mapboxClient.GetStringAsync(url);
+    }
+}
+
