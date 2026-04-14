@@ -1,6 +1,6 @@
 ﻿.page {
     display: grid;
-    grid-template-columns: 52px 1fr minmax(280px, 400px);
+    grid-template-columns: 52px 1.2fr 1fr;
     height: 100vh;
 }
 
@@ -17,10 +17,15 @@
     flex-direction: column;
     background-color: var(--paper);
     position: relative;
+    overflow: hidden;
 }
 
 .right-column {
     background-color: var(--paper-warm);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .left-column button svg {
@@ -139,7 +144,10 @@
 
 .center-column .itinerary{
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
 }
 
 .center-column .time-grid {
@@ -149,6 +157,8 @@
     grid-template-rows: repeat(96, 15px);
     grid-auto-flow: dense;
     position: relative; /* allow absolutely positioned activity cards to overlay */
+    overflow-y: auto;
+    height: 0;
 }
 
 .center-column button {
@@ -236,9 +246,9 @@
 
 .fab-modal {
     z-index: 50;
-    position: sticky;
+    position: absolute;
     bottom: 10px;
-    left: calc(100% - 74px);
+    right: 14px;
     width: 60px;
     height: 60px;
     fill: var(--sage-dark);
