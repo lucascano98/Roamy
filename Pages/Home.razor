@@ -82,7 +82,7 @@
     private class TripFormModel //a model is required to use EditForm in Blazor
     {
         [Required]
-        public string TripLocationInput { get; set; } = "";
+        public TripLocation? TripLocationInput { get; set; }
 
         [Required] //used for validation in EditForm
         public DateTime? StartDate { get; set; }

@@ -1,7 +1,20 @@
 @using System.Threading
+@using Roamy.Models.MapboxModels
+@using System.Text.Json
 @inject HttpClient Http
 
 <input type="text" placeholder="Search for a city..." @oninput="OnSearchInput" />
+
+@if (_suggestions.Count > 0)
+{
+    <ul>
+    @foreach (MapboxSuggestion suggestion in _suggestions)
+    {
+            <li @onclick="() => OnSuggestionSelected(suggestion)">@suggestion.Context.Place.Name, @suggestion.Context.Country.Name</li>
+    }
+    </ul>
+}
+
 
 @code {
     // Separate HttpClient for Mapbox API calls — we can't use the injected Http
@@ -42,6 +55,9 @@
         }, null, 300, Timeout.Infinite);
     }
 
+    private List<MapboxSuggestion> _suggestions = new();
+
+
     private async Task SearchLocations()
     {
         if (string.IsNullOrWhiteSpace(searchQuery)) return;
@@ -51,6 +67,32 @@
 
         // Get raw JSON response from Mapbox
         var response = await _mapboxClient.GetStringAsync(url);
+        var result = JsonSerializer.Deserialize<MapboxSuggestResponse>(response);
+
+        if (result == null) return;
+        _suggestions = result.Suggestions;
     }
+
+    [Parameter]
+    public EventCallback<TripLocation> OnLocationSelected { get; set; }
+
+    private async Task OnSuggestionSelected(MapboxSuggestion suggestion)
+    {
+        var url = $"https://api.mapbox.com/search/searchbox/v1/retrieve/{suggestion.MapboxId}&session_token={_sessionToken}&access_token={_accessToken}";
+        var response = await _mapboxClient.GetStringAsync(url);
+        var result = JsonSerializer.Deserialize<MapboxRetrieveResponse>(response);
+        if (result == null) return;
+
+        var feature = result.Features.FirstOrDefault();
+        if (feature == null) return;
+
+        var selectedLocation = new TripLocation(suggestion.Context.Place.Name, suggestion.Context.Country.Name);
+        selectedLocation.Latitude = feature.Properties.Coordinates.Latitude;
+        selectedLocation.Longitude = feature.Properties.Coordinates.Longitude;
+
+        await OnLocationSelected.InvokeAsync(selectedLocation);
+        _suggestions = new();
+    }
+
 }
 

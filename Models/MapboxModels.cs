@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MapboxModels
+namespace Roamy.Models.MapboxModels
 {
     public class MapboxSuggestResponse
     {
@@ -31,5 +31,26 @@ namespace MapboxModels
     public class MapboxCity
     {
         public string Name {get; set;} = "";
+    }
+
+    public class MapboxRetrieveResponse
+    {
+        public List<MapboxFeatures> Features { get; set; } = new();
+    }
+
+    public class MapboxFeatures
+    {
+        public MapboxProperties Properties { get; set; } = new();
+    }
+
+    public class MapboxProperties
+    {
+        public MapboxCoordinates Coordinates { get; set; } = new();
+    }
+
+    public class MapboxCoordinates
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }
