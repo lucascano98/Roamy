@@ -1,5 +1,6 @@
 @inject TripManager TripManager
 @inject IJSRuntime JS
+@inject HttpClient Http
 
 
 <div id="map">
@@ -10,6 +11,9 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-            await JS.InvokeVoidAsync("initializeMap", "");
+        {
+            var mapToken = await Http.GetStringAsync("api/config");
+            await JS.InvokeVoidAsync("initializeMap", mapToken);
+        }
     }
 }
