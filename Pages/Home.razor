@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Roamy.Components
 @layout LandingLayout //uses the custom layout created for the homepage
 @inject TripManager TripManager //injects TripManager service for handling trips.
 @inject NavigationManager Navigation //used for navigation between pages.
@@ -7,7 +8,7 @@
 
 <div class="hero">
     <div class="overlay"></div>
-    <div class="hero-card">
+    <div class="hero-card" style="position:relative; z-index:2;">
         <h1 class="heading">Where to next?</h1>
         <h2 class="subheading">Plan your adventure</h2>
 
@@ -22,7 +23,7 @@
             <DataAnnotationsValidator />
 
             <div class="form-group">
-                <InputText @bind-Value="formModel.TripLocationInput" placeholder="City, Country" />
+                <LocationSearch OnLocationSelected="SelectedSuggestedTrip"></LocationSearch>
                 @if (error != null)
                 {
                     <p>@error</p>                
@@ -53,6 +54,11 @@
     string? error;
     private TripFormModel formModel = new TripFormModel();
 
+    private void SelectedSuggestedTrip(TripLocation location)
+    {
+        formModel.TripLocationInput = location;
+    }
+
     private async Task HandleSubmit() //becomes async since it needs to talk to the database
     {
         if (formModel.StartDate > formModel.EndDate)
@@ -62,20 +68,8 @@
             formModel.EndDate = temp;
         }
 
-        string[] parts = formModel.TripLocationInput.Split(',');
-        if (parts.Length != 2)
-        {
-            error = "Please enter city, country";
-            return;
-        }
-
-        string city = parts[0].Trim();
-        string country = parts[1].Trim();
-
-        TripLocation tripLocation = new TripLocation(city, country);
-
         //create trip var to extract the tripId for navigation
-        var createdTrip = await TripManager.StartTrip(tripLocation, formModel.StartDate.Value, formModel.EndDate.Value); 
+        var createdTrip = await TripManager.StartTrip(formModel.TripLocationInput, formModel.StartDate.Value, formModel.EndDate.Value); 
         Navigation.NavigateTo($"/planner/{createdTrip.TripId}");
     }
 
@@ -90,5 +84,6 @@
         [Required]
         public DateTime? EndDate { get; set; }
     }
+
 }
 

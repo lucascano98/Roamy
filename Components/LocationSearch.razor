@@ -1,25 +1,40 @@
 @using System.Threading
 @using Roamy.Models.MapboxModels
 @using System.Text.Json
+@using System.Linq
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JS
 @inject HttpClient Http
 
-<input type="text" placeholder="Search for a city..." @oninput="OnSearchInput" />
+<div style="position:relative; width:100%;">
+    <input type="text" placeholder="Search for a city..." @oninput="OnSearchInput" @onkeydown="OnInputKeyDown" style="width:100%; box-sizing:border-box;" />
 
-@if (_suggestions.Count > 0)
-{
-    <ul>
-    @foreach (MapboxSuggestion suggestion in _suggestions)
+    @if (_suggestions.Count > 0)
     {
-            <li @onclick="() => OnSuggestionSelected(suggestion)">@suggestion.Context.Place.Name, @suggestion.Context.Country.Name</li>
+        <ul style="position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; z-index:99999; list-style:none; margin:0; padding:0; width:100%; max-height:240px; overflow:auto; border:1px solid rgba(0,0,0,0.12); box-shadow:0 6px 16px rgba(0,0,0,0.12); min-width:200px; pointer-events:auto; border-radius:6px;">
+        @for (int i = 0; i < _suggestions.Count; i++)
+        {
+            var s = _suggestions[i];
+            var active = i == _activeIndex;
+            <li style="list-style:none; margin:0;">
+                <button type="button" 
+                    @onpointerdown="@(async (PointerEventArgs __e) => { Console.WriteLine($"Suggestion pointerdown: {s.Label} ({s.MapboxId})"); await SelectSuggestion(s); })" 
+                    @onclick="@(async () => { Console.WriteLine($"Suggestion clicked: {s.Label} ({s.MapboxId})"); await SelectSuggestion(s); })" 
+                    @onmouseover="() => SetActiveIndex(i)" class="suggestion-btn" style="width:100%; text-align:left; padding:8px 12px; cursor:pointer; border:0; background:@(active ? "#f1f5f9" : "transparent"); color:#111;">
+                    @s.Label
+                </button>
+            </li>
+        }
+        </ul>
     }
-    </ul>
-}
+</div>
 
 
 @code {
-    // Separate HttpClient for Mapbox API calls — we can't use the injected Http
-    // because its BaseAddress points to our server (localhost:5291), not Mapbox
-    private readonly HttpClient _mapboxClient = new HttpClient();
+    // Use the injected `Http` client for all HTTP calls (works in Blazor WASM).
+    // Absolute URLs will override the client's BaseAddress so we don't need a
+    // separate HttpClient instance (creating a raw HttpClient in WASM is not
+    // supported the same way as server apps).
 
     // Generated once per component instance — Mapbox uses this to group
     // suggest + retrieve calls together for billing purposes
@@ -35,64 +50,194 @@
         _accessToken = await Http.GetStringAsync("api/config");
     }
 
-    private Timer? _debounceTimer;
+    private CancellationTokenSource? _debounceCts;
     private string searchQuery = "";
 
     private async Task OnSearchInput(ChangeEventArgs e)
     {
         searchQuery = e.Value?.ToString() ?? "";
+        Console.WriteLine($"OnSearchInput: '{searchQuery}'");
+        // Debounce using CancellationTokenSource + Task.Delay which works in
+        // Blazor WebAssembly. Cancel the previous pending delay and start a
+        // new one; only after the delay completes will we call the API.
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
 
-        // Debouncing — dispose the previous timer and start a new one
-        // This means the API call only fires 300ms after the user STOPS typing
-        // Without this, we'd fire a call on every single keystroke
-        _debounceTimer?.Dispose();
-        _debounceTimer = new Timer(async _ => {
-            await SearchLocations();
-            // Timer runs on a background thread, not Blazor's UI thread
-            // InvokeAsync marshals the StateHasChanged call back to the UI thread
-            // so Blazor can safely re-render with the new suggestions
-            await InvokeAsync(StateHasChanged);
-        }, null, 300, Timeout.Infinite);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(300, token);
+                if (token.IsCancellationRequested) { Console.WriteLine("Debounce cancelled"); return; }
+                await SearchLocations();
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (TaskCanceledException)
+            {
+                // expected when user keeps typing
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Debounce/Search exception: {ex}");
+            }
+        });
     }
 
-    private List<MapboxSuggestion> _suggestions = new();
+    private class SuggestionItem
+    {
+        public string MapboxId { get; set; } = "";
+        public string Label { get; set; } = "";
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
+    private List<SuggestionItem> _suggestions = new();
+    private int _activeIndex = -1;
+
+    private void SetActiveIndex(int index)
+    {
+        _activeIndex = index;
+    }
+
+    private ElementReference _inputRef;
+
+    private async Task OnInputKeyDown(KeyboardEventArgs e)
+    {
+        if (_suggestions.Count == 0) return;
+
+        if (e.Key == "ArrowDown")
+        {
+            MoveActiveIndex(1);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (e.Key == "ArrowUp")
+        {
+            MoveActiveIndex(-1);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (e.Key == "Enter")
+        {
+            if (_suggestions.Count == 0) return;
+            var idx = _activeIndex >= 0 ? _activeIndex : 0;
+            if (idx >= 0 && idx < _suggestions.Count)
+            {
+                await SelectSuggestion(_suggestions[idx]);
+            }
+            return;
+        }
+
+        if (e.Key == "Escape")
+        {
+            _suggestions.Clear();
+            _activeIndex = -1;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+    }
+
+    private void MoveActiveIndex(int delta)
+    {
+        if (_suggestions.Count == 0)
+        {
+            _activeIndex = -1;
+            return;
+        }
+
+        _activeIndex = (_activeIndex + delta + _suggestions.Count) % _suggestions.Count;
+    }
+
+    private async Task SelectSuggestion(SuggestionItem item)
+    {
+        if (item == null) return;
+
+        // Parse city and country from "City, Region, Country" format
+        var parts = item.Label.Split(',');
+        var city = parts[0].Trim();
+        var country = parts[parts.Length - 1].Trim();
+
+        await JS.InvokeVoidAsync("eval", $"document.querySelector('input[placeholder=\"Search for a city...\"]').value = '{item.Label}'");
+    
+        var selectedLocation = new TripLocation(city, country)
+        {
+            Latitude = item.Latitude,
+            Longitude = item.Longitude
+        };
+    
+        await OnLocationSelected.InvokeAsync(selectedLocation);
+        _suggestions.Clear();
+        _activeIndex = -1;
+        await InvokeAsync(StateHasChanged);
+    }
 
 
     private async Task SearchLocations()
     {
-        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+        if (string.IsNullOrWhiteSpace(searchQuery)) { Console.WriteLine("SearchLocations: query empty, returning"); return; }
+        Console.WriteLine($"SearchLocations firing for '{searchQuery}'");
 
         // Build the Mapbox Search Box suggest URL with required parameters
-        var url = $"https://api.mapbox.com/search/searchbox/v1/suggest?q={searchQuery}&session_token={_sessionToken}&access_token={_accessToken}&language=en";
+        var encoded = Uri.EscapeDataString(searchQuery);
+        // Use Mapbox forward geocoding (mapbox.places) which returns place_name and geometry coordinates
+        var url = $"https://api.mapbox.com/geocoding/v5/mapbox.places/{encoded}.json?access_token={_accessToken}&limit=6&autocomplete=true&language=en";
 
-        // Get raw JSON response from Mapbox
-        var response = await _mapboxClient.GetStringAsync(url);
-        var result = JsonSerializer.Deserialize<MapboxSuggestResponse>(response);
+        try
+        {
+            // Use injected Http (works with Blazor WASM) and make deserialization
+            // case-insensitive so camelCase JSON from Mapbox maps to our
+            // PascalCase C# properties.
+            var response = await Http.GetStringAsync(url);
+            Console.WriteLine(response);
+            var items = new List<SuggestionItem>();
+            // Try to parse the raw JSON to build labels more accurately.
+            try
+            {
+                using var doc = JsonDocument.Parse(response);
+                if (doc.RootElement.TryGetProperty("features", out var featuresEl) && featuresEl.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var el in featuresEl.EnumerateArray())
+                    {
+                        var mapboxId = el.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String ? idEl.GetString() ?? "" : "";
+                        var label = el.TryGetProperty("place_name", out var pn) && pn.ValueKind == JsonValueKind.String ? pn.GetString() ?? "" : el.GetProperty("text").GetString() ?? "";
+                        double lat = 0, lon = 0;
+                        if (el.TryGetProperty("geometry", out var geom) && geom.ValueKind == JsonValueKind.Object && geom.TryGetProperty("coordinates", out var coords) && coords.ValueKind == JsonValueKind.Array)
+                        {
+                            var arr = coords.EnumerateArray().ToArray();
+                            if (arr.Length >= 2)
+                            {
+                                double.TryParse(arr[1].ToString(), out lat);
+                                double.TryParse(arr[0].ToString(), out lon);
+                            }
+                        }
+                        items.Add(new SuggestionItem { MapboxId = mapboxId, Label = label, Latitude = lat, Longitude = lon });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Geocode parse error: {ex}");
+            }
 
-        if (result == null) return;
-        _suggestions = result.Suggestions;
+            _suggestions = items;
+            _activeIndex = -1;
+            Console.WriteLine($"Mapbox suggestions: {_suggestions.Count}");
+            try { Console.WriteLine(JsonSerializer.Serialize(_suggestions)); } catch { }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SearchLocations error: {ex}");
+        }
     }
 
     [Parameter]
     public EventCallback<TripLocation> OnLocationSelected { get; set; }
 
-    private async Task OnSuggestionSelected(MapboxSuggestion suggestion)
-    {
-        var url = $"https://api.mapbox.com/search/searchbox/v1/retrieve/{suggestion.MapboxId}&session_token={_sessionToken}&access_token={_accessToken}";
-        var response = await _mapboxClient.GetStringAsync(url);
-        var result = JsonSerializer.Deserialize<MapboxRetrieveResponse>(response);
-        if (result == null) return;
 
-        var feature = result.Features.FirstOrDefault();
-        if (feature == null) return;
-
-        var selectedLocation = new TripLocation(suggestion.Context.Place.Name, suggestion.Context.Country.Name);
-        selectedLocation.Latitude = feature.Properties.Coordinates.Latitude;
-        selectedLocation.Longitude = feature.Properties.Coordinates.Longitude;
-
-        await OnLocationSelected.InvokeAsync(selectedLocation);
-        _suggestions = new();
-    }
 
 }
 
