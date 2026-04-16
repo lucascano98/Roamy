@@ -174,36 +174,20 @@
         TripManager.OnChange -= StateHasChanged;
     }
 
-    //Find the Grid row for a certain time (1440 min/day, with a row every 15 minutes = 96 rows)
-    private int GetGridRow(TimeSpan startTime )
-    {
-        return (int)(startTime.TotalMinutes / 15) + 1;
-    }
-
-    //Finds the height (span) of an activity card based on duration
-    private int GetGridRowSpan(TimeSpan duration)
-    {
-        if (duration.TotalMinutes <= 0)
-        {
-            return 1;
-        }
-        return (int)Math.Ceiling(duration.TotalMinutes / 15); //round up to properly fill in the card
-    }
-
-    // use percent of the day so placement of activity card scales with container height
+    // use pixel of the day so placement of activity card scales with container height
     private string GetTopPx(TimeSpan startTime)
     {
-        var percent = startTime.TotalMinutes / 1440.0 * 100.0; // 1440 minutes in a day
-        return $"{percent.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}%"; //creates 4 decimal places with no trailing 0s. Also uses a '.' for decimal regardless of regional setting as to not break CSS.
+        var px = startTime.TotalMinutes; // 1440 minutes in a day
+        return $"{px.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}px"; //creates 4 decimal places with no trailing 0s. Also uses a '.' for decimal regardless of regional setting as to not break CSS.
     }
 
     // find the height of the activity card
     private string GetHeightPx(TimeSpan duration)
     {
-        var percent = duration.TotalMinutes / 1440.0 * 100.0;
-        if (percent <= 0.1) // ensure something visible for very short durations
-            percent = 0.1;
-        return $"{percent.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}%";
+        var px = duration.TotalMinutes;
+        if (px <= 15) // ensure something visible for very short durations
+            px = 15;
+        return $"{px.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)}px";
     }
 
     private void PreviousDay()
