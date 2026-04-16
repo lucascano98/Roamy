@@ -149,7 +149,7 @@
     public Guid TripId {get; set;}
     enum ActivePanel { None, Map, Shortlist }
 
-    private ActivePanel currentPanel = ActivePanel.Shortlist; //default panel is the shortlist
+    private ActivePanel currentPanel = ActivePanel.Map; //default panel is the shortlist
 
     private void SetPanel(ActivePanel panel)
     {
