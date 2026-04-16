@@ -13,7 +13,7 @@
         if (firstRender)
         {
             var mapToken = await Http.GetStringAsync("api/config");
-            await JS.InvokeVoidAsync("initializeMap", mapToken);
+            await JS.InvokeVoidAsync("initializeMap", mapToken, TripManager.CurrentTrip.Location[0].Longitude, TripManager.CurrentTrip.Location[0].Latitude);
         }
     }
 }
